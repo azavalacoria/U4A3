@@ -13,14 +13,15 @@ import javax.swing.JOptionPane;
  * @author hawk
  */
 public class Principal {
-
-    private static Producto productos[];
+    private static String nombres[];
+    private static int precios[];
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         // TODO code application logic here
-        productos = new Producto[10];
+        nombres = new String[10];
+        precios = new int[10];
         while (true) {
             mostrarMenu();
         }
@@ -48,15 +49,13 @@ public class Principal {
     
     private static void crearProductos() {
         int posicion = 0;
-        while (posicion < productos.length) {
+        while (posicion < 10) {
             String nombre = obtenerTexto("Producto No: " + (posicion + 1));
             int precio = obtenerEntero("Producto No: " + (posicion + 1), 
                             "Indique el precio del producto");
             if (precio >= 0 && nombre.length() > 0) {
-                Producto producto = new Producto();
-                producto.setNombre(nombre);
-                producto.setPrecio(precio);
-                productos[posicion] = producto;
+                nombres[posicion] = nombre;
+                precios[posicion] = precio;
                 posicion++;
             } else {
                 mostrarTexto("Error al ingresar el producto", 
@@ -112,15 +111,15 @@ public class Principal {
         int posicion = 0;
         String contenido = "Los siguientes productos poseen un precio mayor igual" + 
                 " a 500 pesos.\n\n";
-        for (Producto producto : productos) {
-            posicion++;
-            if (producto != null && producto.getPrecio() >= 500) {
+        
+        while (posicion < 10) {
+            if (precios[posicion] >= 500) {
                 contenido = contenido + 
-                        "Posicion: " + posicion + 
-                        ".\tNombre: " + producto.getNombre() + 
-                        ".\tPrecio: $\t" + producto.getPrecio() + "\n";
+                        "Posicion: " + (posicion + 1) + 
+                        ".\tNombre: " + nombres[posicion] + 
+                        ".\tPrecio: $\t" + precios[posicion] + "\n";
             }
-            
+            posicion++;
         }
         mostrarTexto("Lista de productos", contenido);
     }
