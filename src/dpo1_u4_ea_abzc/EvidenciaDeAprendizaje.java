@@ -7,8 +7,11 @@ package dpo1_u4_ea_abzc;
 
 import java.awt.HeadlessException;
 import java.util.Random;
+import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 /**
  *
@@ -19,9 +22,6 @@ public class EvidenciaDeAprendizaje {
     /* Arreglos para almacenar los datos ingresados */
     private static String nombres[];
     private static int precios[][];
-
-    private static String nombresOrdenados[];
-    private static int preciosOrdenados[][];
 
     /**
      * @param args the command line arguments
@@ -41,19 +41,22 @@ public class EvidenciaDeAprendizaje {
                 + "1.- Agregar productos.\n"
                 + "2.- Mostrar productos.\n"
                 + "3.- Ordenar por costo de Inventario.\n"
-                + "5.- Buscar producto por nombre.\n"
+                + "4.- Buscar producto por nombre.\n"
                 + "5.-Salir.";
         mostrarTexto("Menu", contenido);
         int opcion = obtenerEntero("", "Ingrese la opción a realizar");
         switch (opcion) {
             case 1:
-                generarProductos();
+                registrarProductos();
                 break;
             case 2:
                 mostrarProductos();
                 break;
             case 3:
                 ordenarProductos();
+                break;
+            case 4:
+                realizarBusqueda();
                 break;
             case 5:
                 System.exit(0);
@@ -94,6 +97,9 @@ public class EvidenciaDeAprendizaje {
         }
     }
     
+    /* 
+    *   Método de pruebas para generar n productos con precios aleatorios.
+     */
     private static void generarProductos() {
         int posicion = 0;
         Random random = new Random();
@@ -151,12 +157,24 @@ public class EvidenciaDeAprendizaje {
         return numero;
     }
 
-    /* Muestra una ventana de ayuda al usuario */
+    /* Muestra una ventana de ayuda al usuario. Se apoya de elementos Swing para
+    *  desplegar los datos en pantalla.
+    */
     private static void mostrarTexto(String titulo, String mensaje) {
+        // Elemento textarea permite desplegar correctamente las tabulaciones
+        JTextArea textArea = new JTextArea(mensaje);
+        textArea.setEditable(false);
+        textArea.setOpaque(false);
+        // Elemento scrollpane aporta barras de desplazamiento si el contenido lo requiere
+        JScrollPane scrollpane = new JScrollPane(textArea);
+        scrollpane.setBorder(BorderFactory.createEmptyBorder());
+        scrollpane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollpane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
+        // Muestra el contenido en la pantalla mediante un cuadro de diálogo
         JOptionPane.showMessageDialog(
-                null,
-                mensaje,
-                titulo,
+                null, 
+                scrollpane,
+                titulo, 
                 JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -170,14 +188,19 @@ public class EvidenciaDeAprendizaje {
                     + precios[posicion][1]
                     + precios[posicion][2]) / 3;
             contenido = contenido
-                    + "Posicion: " + (posicion + 1)
-                    + ".\tNombre: " + nombres[posicion]
-                    + ".\tPrecio Promedio: $\t" + promedio + "\n";
+                    + "[" + (posicion + 1) + "]"
+                    + ". Nombre: " + nombres[posicion]
+                    + ".\tPrecio Promedio:   $ " + promedio + "\n";
             posicion++;
         }
         mostrarTexto("Lista de productos", contenido);
     }
-
+    
+    /*
+    *  Utilizando el método del intercambio, ordena los productos de mayor a 
+    *  menor, dependendo de su costo de inventario. El resultado es desplegado
+    *  en pantalla.
+    */
     private static void ordenarProductos() {
         String datosOriginales = "Datos Originales:\n\n";
         for (int i = 0; i < 10; i++) {
@@ -191,22 +214,23 @@ public class EvidenciaDeAprendizaje {
             for (int j = i + 1; j < precios.length; j++) {
                 if (precios[i][2] > precios[j][2]) {
                     int temporal = 0;
-                    // Intercambio de valor primera columna
+                    
+                    // Intercambio de valor para primera columna
                     temporal = precios[i][0];
                     precios[i][0] = precios[j][0];
                     precios[j][0] = temporal;
                     
-                    // Intercambio de valor segunda columna
+                    // Intercambio de valor para segunda columna
                     temporal = precios[i][1];
                     precios[i][1] = precios[j][1];
                     precios[j][1] = temporal;
                     
-                    // Intercambio de valor tercera columna
+                    // Intercambio de valor para tercera columna
                     temporal = precios[i][2];
                     precios[i][2] = precios[j][2];
                     precios[j][2] = temporal;
                     
-                    // Intercambio de valor de nombres
+                    // Intercambio de valor para nombres
                     String nombre = nombres[i];
                     nombres[i] = nombres[j];
                     nombres[j] = nombre;
@@ -221,10 +245,68 @@ public class EvidenciaDeAprendizaje {
                     + "\tMenudeo: " + precios[i][1]
                     + "\tC. Inventario: " + precios[i][2] + "\n";
         }
+        datosOrdenados = datosOriginales + datosOrdenados;
         
-        JTextArea textArea = new JTextArea(datosOriginales + datosOrdenados);
-        textArea.setEditable(false);
-        textArea.setOpaque(false);
-        JOptionPane.showMessageDialog(null, textArea, "Productos", JOptionPane.INFORMATION_MESSAGE);
+        mostrarTexto("Productos ordenados", datosOrdenados);
+    }
+    
+    // Validar que la cadena de texto a buscar cumpla determinadas condiciones
+    private static void realizarBusqueda() {
+        boolean buscar = true;
+        while (buscar) {
+            String texto = obtenerTexto("Búsqueda de productos");
+            if (texto.length() > 0) {
+                buscarProducto(texto);
+                buscar = false;
+            } else {
+                mostrarTexto("Error", "Debe escribir al menos una palabra para "
+                        + "poder realizar la búsqueda");
+            }
+        }
+    }
+    
+    /*  Realiza la búsqueda de un producto dependiendo de la cadena de texto
+    *   recepcionada. Si no la encuentra, imprime las coincidencias para ayudar
+    *   al usuario a encontrar el producto que desea encontrar.
+    */
+    private static void buscarProducto(String texto) {
+        boolean encontrado = false;
+        String coincidencias = "";
+        int indice = -1;
+        // Busca el contenido del texto en todos los elementos guardados.
+        for (int i = 0; i < nombres.length; i++) {
+            if (nombres[i].toUpperCase().equals(texto.toUpperCase())) {
+                encontrado = true;
+                indice = i;
+            } else if (nombres[i].toUpperCase().contains(texto.toUpperCase())) {
+                coincidencias = coincidencias + i + ",";
+            }
+        }
+        /*  En caso de haber encontrado la cadena de texto, imprime la información.
+        *   Si no, imprime las coincidencias que haya encontrado.
+        */
+        if (encontrado) {
+            String productoEncontrado = "\nSu búsqueda coincidió con el elemento"
+                    + " número " + (indice + 1) + " de la lista.\n\n" +
+                    "Nombre: " + nombres[indice] + "\n" +
+                    "Precio Mayoreo: " + precios[indice][0]+ "\n" +
+                    "Precio Menudeo: " + precios[indice][1]+ "\n" +
+                    "Costo Inventario: " + precios[indice][2];
+            mostrarTexto("Resultado de la búsqueda", productoEncontrado);
+        } else {
+            String indicesQueCoinciden[] = coincidencias.split(",");
+            String opciones = "Su búsqueda no arrojó resultados. "
+                    + "Intente con las siguientes opciones:\n\n";
+            System.out.println(coincidencias);
+            indice = 1;
+            for (String indiceCoincidencia : indicesQueCoinciden) {
+                opciones = opciones + indice +".-\t" + 
+                        nombres[Integer.parseInt(indiceCoincidencia)] + ".\n";
+                indice++;
+            }
+            mostrarTexto("Opciones Encontradas", opciones);
+        }
+        
+        
     }
 }
